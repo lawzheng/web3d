@@ -20,7 +20,11 @@ const cubeMaterial = new THREE.MeshBasicMaterial({color: 0xffff00})
 // 生成完整的
 const cube = new THREE.Mesh(cubeGeometry, cubeMaterial)
 
-cube.position.set(5,0,0)
+// cube.position.set(5,0,0)
+// 缩放
+// cube.scale.set(3,2,1)
+// 旋转
+cube.rotation.set(Math.PI / 4,0,0)
 
 scene.add(cube)
 
@@ -39,12 +43,16 @@ scene.add( axesHelper );
 
 controls.update();
 
+const clock = new THREE.Clock();
 function animate() {
+  const time = clock.getElapsedTime();
+  const deltaTime = clock.getDelta();
   // 移动
-  cube.position.x += 0.01;
-  if (cube.position.x > 5) {
-    cube.position.x = 0
-  }
+  // cube.position.x = time / 1000 % 5 * 1;
+  // if (cube.position.x > 5) {
+  //   cube.position.x = 0
+  // }
+  // cube.rotation.x += 0.01;
 	requestAnimationFrame( animate );
 	renderer.render( scene, camera );
 
