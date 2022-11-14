@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 // 轨道控制器
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import door from '../assets/imgs/door.jpg'
+import gsap from 'gsap'
 
 const scene = new THREE.Scene();
 
@@ -15,32 +15,53 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(0, 0, 10)
 scene.add(camera)
 
-const textureLoader = new THREE.TextureLoader();
-const doorTextureLoader = textureLoader.load(door)
-// doorTextureLoader.offset.x = 0.5;
-// doorTextureLoader.offset.y = 0.5;
-// 设置旋转中心
-// doorTextureLoader.center.set(0.5,0.5)
-// doorTextureLoader.rotation = Math.PI / 4;
-doorTextureLoader.repeat.set(2,3);
-// x轴重复 镜像重复
-doorTextureLoader.wrapS = THREE.MirroredRepeatWrapping;
-// y轴重复
-doorTextureLoader.wrapT = THREE.RepeatWrapping;
 
 // 几何体
-const cubeGeometry = new THREE.BoxGeometry(1,1,1);
-const cubeMaterial = new THREE.MeshBasicMaterial({
-  color: '#ffff00',
-  map: doorTextureLoader
-})
+// const cubeGeometry = new THREE.BoxGeometry(1,1,1);
+// const cubeGeometry = new THREE.BufferGeometry();
+// const vertices = new Float32Array([
+//   -1,-1,1,
+//   1,-1,1,
+//   1,1,1,
+//   1,1,1,
+//   -1,1,1,
+//   -1,-1,1
+// ])
+// cubeGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3))
 
-// 生成完整的
-const cube = new THREE.Mesh(cubeGeometry, cubeMaterial)
+// // 材质
 
+for (let i = 0; i < 50; i++) {
+  const geometry = new THREE.BufferGeometry();
+  const positionArray = new Float32Array(9);
 
+  for (let j = 0; j < 9; j++) {
+    positionArray[j] = Math.random() * 10 - 5
+  }
+  geometry.setAttribute('position', new THREE.BufferAttribute(positionArray, 3))
+  
+  const cubeMaterial = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(Math.random(),Math.random(),Math.random()),
+    opacity: Math.random(),
+    transparent: true
+  })
+  const mesh = new THREE.Mesh(geometry, cubeMaterial)
+  scene.add(mesh)
+}
 
-scene.add(cube)
+// const mesh = new THREE.Mesh(cubeGeometry, cubeMaterial)
+// // 生成完整的
+// const cube = new THREE.Mesh(cubeGeometry, cubeMaterial)
+
+// scene.add(mesh)
+
+// cube.position.set(5,0,0)
+// 缩放
+// cube.scale.set(3,2,1)
+// 旋转
+// cube.rotation.set(Math.PI / 4,0,0)
+
+// scene.add(cube)
 
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
