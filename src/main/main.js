@@ -16,11 +16,24 @@ camera.position.set(0, 0, 10)
 scene.add(camera)
 
 // 几何体
-const cubeGeometry = new THREE.BoxGeometry(1,1,1);
+// const cubeGeometry = new THREE.BoxGeometry(1,1,1);
+const cubeGeometry = new THREE.BufferGeometry();
+const vertices = new Float32Array([
+  -1,-1,1,
+  1,-1,1,
+  1,1,1,
+  1,1,1,
+  -1,1,1,
+  -1,-1,1
+])
+cubeGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3))
 // 材质
 const cubeMaterial = new THREE.MeshBasicMaterial({color: 0xffff00})
+const mesh = new THREE.Mesh(cubeGeometry, cubeMaterial)
 // 生成完整的
 const cube = new THREE.Mesh(cubeGeometry, cubeMaterial)
+console.log(cubeGeometry, cubeMaterial)
+scene.add(mesh)
 
 // cube.position.set(5,0,0)
 // 缩放
