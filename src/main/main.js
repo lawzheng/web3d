@@ -1,5 +1,7 @@
 import * as THREE from 'three'
+// 轨道控制器
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import gsap from 'gsap'
 
 const scene = new THREE.Scene();
 
@@ -36,6 +38,8 @@ document.body.appendChild(renderer.domElement)
 // renderer.render(scene, camera)
 
 const controls = new OrbitControls(camera, renderer.domElement)
+// 开启阻尼 更真实
+controls.enableDamping = true;
 
 // 坐标轴
 const axesHelper = new THREE.AxesHelper( 5 );
@@ -44,6 +48,34 @@ scene.add( axesHelper );
 controls.update();
 
 const clock = new THREE.Clock();
+
+const animate1 = gsap.to(cube.position, {
+  x: 5,
+  duration: 5,
+  // 重复次数，-1无限次
+  repeat: -1,
+  // 往返
+  yoyo: true,
+  delay: 2,
+});
+
+gsap.to(cube.rotation, {
+  x: 2 * Math.PI,
+  duration: 5,
+  ease: "power1.inout",
+  onComplete: () => {
+    console.log(1);
+  }
+})
+
+window.addEventListener('dblclick', () => {
+  if (animate1.isActive()) {
+    animate1.pause()
+  } else {
+    animate1.resume()
+  }
+})
+
 function animate() {
   const time = clock.getElapsedTime();
   const deltaTime = clock.getDelta();
@@ -53,8 +85,20 @@ function animate() {
   //   cube.position.x = 0
   // }
   // cube.rotation.x += 0.01;
-	requestAnimationFrame( animate );
+  controls.update();
 	renderer.render( scene, camera );
+	requestAnimationFrame( animate );
 
 }
 animate()
+
+window.addEventListener('resize', () => {
+  // 更新宽高比
+  camera.aspect = window.innerWidth / window.innerHeight
+  // 更新摄像机投影矩阵
+  camera.updateProjectionMatrix();
+  // 更新渲染器
+  renderer.setSize(window.innerWidth, window.innerHeight)
+  // 更新像素比
+  renderer.setPixelRatio = window.devicePixelRatio;
+})
