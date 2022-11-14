@@ -15,33 +15,53 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(0, 0, 10)
 scene.add(camera)
 
+
 // 几何体
 // const cubeGeometry = new THREE.BoxGeometry(1,1,1);
-const cubeGeometry = new THREE.BufferGeometry();
-const vertices = new Float32Array([
-  -1,-1,1,
-  1,-1,1,
-  1,1,1,
-  1,1,1,
-  -1,1,1,
-  -1,-1,1
-])
-cubeGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3))
-// 材质
-const cubeMaterial = new THREE.MeshBasicMaterial({color: 0xffff00})
-const mesh = new THREE.Mesh(cubeGeometry, cubeMaterial)
-// 生成完整的
-const cube = new THREE.Mesh(cubeGeometry, cubeMaterial)
-console.log(cubeGeometry, cubeMaterial)
-scene.add(mesh)
+// const cubeGeometry = new THREE.BufferGeometry();
+// const vertices = new Float32Array([
+//   -1,-1,1,
+//   1,-1,1,
+//   1,1,1,
+//   1,1,1,
+//   -1,1,1,
+//   -1,-1,1
+// ])
+// cubeGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3))
+
+// // 材质
+
+for (let i = 0; i < 50; i++) {
+  const geometry = new THREE.BufferGeometry();
+  const positionArray = new Float32Array(9);
+
+  for (let j = 0; j < 9; j++) {
+    positionArray[j] = Math.random() * 10 - 5
+  }
+  geometry.setAttribute('position', new THREE.BufferAttribute(positionArray, 3))
+  
+  const cubeMaterial = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(Math.random(),Math.random(),Math.random()),
+    opacity: Math.random(),
+    transparent: true
+  })
+  const mesh = new THREE.Mesh(geometry, cubeMaterial)
+  scene.add(mesh)
+}
+
+// const mesh = new THREE.Mesh(cubeGeometry, cubeMaterial)
+// // 生成完整的
+// const cube = new THREE.Mesh(cubeGeometry, cubeMaterial)
+
+// scene.add(mesh)
 
 // cube.position.set(5,0,0)
 // 缩放
 // cube.scale.set(3,2,1)
 // 旋转
-cube.rotation.set(Math.PI / 4,0,0)
+// cube.rotation.set(Math.PI / 4,0,0)
 
-scene.add(cube)
+// scene.add(cube)
 
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
@@ -62,24 +82,24 @@ controls.update();
 
 const clock = new THREE.Clock();
 
-const animate1 = gsap.to(cube.position, {
-  x: 5,
-  duration: 5,
-  // 重复次数，-1无限次
-  repeat: -1,
-  // 往返
-  yoyo: true,
-  delay: 2,
-});
+// const animate1 = gsap.to(cube.position, {
+//   x: 5,
+//   duration: 5,
+//   // 重复次数，-1无限次
+//   repeat: -1,
+//   // 往返
+//   yoyo: true,
+//   delay: 2,
+// });
 
-gsap.to(cube.rotation, {
-  x: 2 * Math.PI,
-  duration: 5,
-  ease: "power1.inout",
-  onComplete: () => {
-    console.log(1);
-  }
-})
+// gsap.to(cube.rotation, {
+//   x: 2 * Math.PI,
+//   duration: 5,
+//   ease: "power1.inout",
+//   onComplete: () => {
+//     console.log(1);
+//   }
+// })
 
 window.addEventListener('dblclick', () => {
   if (animate1.isActive()) {
