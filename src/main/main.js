@@ -1,6 +1,8 @@
 import * as THREE from 'three'
 // 轨道控制器
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader'
+
 
 const scene = new THREE.Scene();
 
@@ -14,107 +16,39 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(0, 0, 10)
 scene.add(camera)
 
-const manager = new THREE.LoadingManager(
-  function ( ) {
-
-    console.log( 'Loading complete!');
-  
-  },
-  function ( url, itemsLoaded, itemsTotal ) {
-
-    console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
-  
-  },
-  function ( url ) {
-
-    console.log( 'There was an error loading ' + url );
-  
-  }
-);
-
-const textureLoader = new THREE.TextureLoader(manager);
-const doorTextureLoader = textureLoader.load('./textures/door/color.jpg')
-// 透明材质
-const doorAplhaTexture = textureLoader.load('./textures/door/alpha.jpg')
-const doorAOTexture = textureLoader.load('./textures/door/ambientOcclusion.jpg')
-const doorHeightexture = textureLoader.load('./textures/door/height.jpg')
-const doorRoughnesstexture = textureLoader.load('./textures/door/roughness.jpg')
-const doorMetalnesstexture = textureLoader.load('./textures/door/metalness.jpg')
-const doorNormalMaptexture = textureLoader.load('./textures/door/normal.jpg')
-
-
-
-// doorTextureLoader.offset.x = 0.5;
-// doorTextureLoader.offset.y = 0.5;
-// 设置旋转中心
-// doorTextureLoader.center.set(0.5,0.5)
-// doorTextureLoader.rotation = Math.PI / 4;
-// doorTextureLoader.repeat.set(2,3);
-// // x轴重复 镜像重复
-// doorTextureLoader.wrapS = THREE.MirroredRepeatWrapping;
-// // y轴重复
-// doorTextureLoader.wrapT = THREE.RepeatWrapping;
-
-// 纹理设置
-// doorTextureLoader.minFilter = THREE.NearestFilter;
-// doorTextureLoader.magFilter = THREE.NearestFilter;
-
-// 几何体
-const cubeGeometry = new THREE.BoxGeometry(1,1,1, 200, 200);
-// 基础材质
-// const cubeMaterial = new THREE.MeshBasicMaterial({
-//   color: '#ffff00',
-//   map: doorTextureLoader,
-//   alphaMap: doorAplhaTexture,
-//   aoMap: doorAOTexture,
-//   // 环境遮挡效果的强度
-//   aoMapIntensity: 0.5,
-//   // 开启透明
-//   transparent: true,
-//   // opacity: 0.5,
-//   // side: THREE.DoubleSide,
-// })
-// 标准材质
-const cubeMaterial = new THREE.MeshStandardMaterial({
-  color: 'gray',
-  map: doorTextureLoader,
-  alphaMap: doorAplhaTexture,
-  aoMap: doorAOTexture,
-  // 环境遮挡效果的强度
-  aoMapIntensity: 0.5,
-  // 开启透明
-  transparent: true,
-  // opacity: 0.5,
-  // side: THREE.DoubleSide,
-  displacementMap: doorHeightexture,
-  displacementScale: 0.05,
-  roughness: 1,
-  roughnessMap: doorRoughnesstexture,
-  metalness: 1,
-  metalnessMap: doorMetalnesstexture,
-  normalMap: doorNormalMaptexture
+const rgbeLoader = new RGBELoader()
+rgbeLoader.loadAsync('textures/hdr/002.hdr').then(texture => {
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+  scene.background = texture
+  scene.environment = texture
 })
 
-// 生成完整的
-const cube = new THREE.Mesh(cubeGeometry, cubeMaterial)
+// const cubeTextureLoader = new THREE.CubeTextureLoader()
+// const envMapTexture = cubeTextureLoader.load([
+//   'textures/environmentMaps/1/px.jpg',
+//   'textures/environmentMaps/1/nx.jpg',
+//   'textures/environmentMaps/1/py.jpg',
+//   'textures/environmentMaps/1/ny.jpg',
+//   'textures/environmentMaps/1/pz.jpg',
+//   'textures/environmentMaps/1/nz.jpg',
+// ])
 
-scene.add(cube)
-cubeGeometry.setAttribute(
-  'uv2',
-  new THREE.BufferAttribute(cubeGeometry.attributes.uv.array, 2)
+const sphereGeometry = new THREE.SphereGeometry(1,20,20)
+const material = new THREE.MeshStandardMaterial({
+  metalness: 0.7,
+  roughness: 0.1,
+  // envMap: envMapTexture
+})
+const sphere = new THREE.Mesh(
+  sphereGeometry,
+  material
 )
+scene.add(sphere)
+// 给场景添加背景
+// scene.background = envMapTexture
+// 给场景所有的物体添加默认的环境贴图
+// scene.environment = envMapTexture
 
-const planeGeometry = new THREE.PlaneGeometry(1,1, 200, 200)
-const plane = new THREE.Mesh(
-  planeGeometry,
-  cubeMaterial
-)
-plane.position.set(1,0,0)
-scene.add(plane)
-planeGeometry.setAttribute(
-  'uv2',
-  new THREE.BufferAttribute(planeGeometry.attributes.uv.array, 2)
-)
 
 // 环境灯光
 const light = new THREE.AmbientLight( 0xffffff, 1 ); // soft white light
@@ -141,44 +75,7 @@ scene.add( axesHelper );
 
 controls.update();
 
-const clock = new THREE.Clock();
-
-// const animate1 = gsap.to(cube.position, {
-//   x: 5,
-//   duration: 5,
-//   // 重复次数，-1无限次
-//   repeat: -1,
-//   // 往返
-//   yoyo: true,
-//   delay: 2,
-// });
-
-// gsap.to(cube.rotation, {
-//   x: 2 * Math.PI,
-//   duration: 5,
-//   ease: "power1.inout",
-//   onComplete: () => {
-//     console.log(1);
-//   }
-// })
-
-window.addEventListener('dblclick', () => {
-  if (animate1.isActive()) {
-    animate1.pause()
-  } else {
-    animate1.resume()
-  }
-})
-
 function animate() {
-  const time = clock.getElapsedTime();
-  const deltaTime = clock.getDelta();
-  // 移动
-  // cube.position.x = time / 1000 % 5 * 1;
-  // if (cube.position.x > 5) {
-  //   cube.position.x = 0
-  // }
-  // cube.rotation.x += 0.01;
   controls.update();
 	renderer.render( scene, camera );
 	requestAnimationFrame( animate );
