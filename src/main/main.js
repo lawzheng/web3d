@@ -4,6 +4,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import door from '../assets/imgs/textures/door/color.jpg'
 import alpha from '../assets/imgs/textures/door/alpha.jpg'
 import doorAO from '../assets/imgs/textures/door/ambientOcclusion.jpg'
+import height from '../assets/imgs/textures/door/height.jpg'
+import roughness from '../assets/imgs/textures/door/roughness.jpg'
 
 const scene = new THREE.Scene();
 
@@ -22,6 +24,8 @@ const doorTextureLoader = textureLoader.load(door)
 // 透明材质
 const doorAplhaTexture = textureLoader.load(alpha)
 const doorAOTexture = textureLoader.load(doorAO)
+const doorHeightexture = textureLoader.load(height)
+const doorRoughnesstexture = textureLoader.load(roughness)
 // doorTextureLoader.offset.x = 0.5;
 // doorTextureLoader.offset.y = 0.5;
 // 设置旋转中心
@@ -38,8 +42,22 @@ const doorAOTexture = textureLoader.load(doorAO)
 // doorTextureLoader.magFilter = THREE.NearestFilter;
 
 // 几何体
-const cubeGeometry = new THREE.BoxGeometry(1,1,1);
-const cubeMaterial = new THREE.MeshBasicMaterial({
+const cubeGeometry = new THREE.BoxGeometry(1,1,1, 200, 200);
+// 基础材质
+// const cubeMaterial = new THREE.MeshBasicMaterial({
+//   color: '#ffff00',
+//   map: doorTextureLoader,
+//   alphaMap: doorAplhaTexture,
+//   aoMap: doorAOTexture,
+//   // 环境遮挡效果的强度
+//   aoMapIntensity: 0.5,
+//   // 开启透明
+//   transparent: true,
+//   // opacity: 0.5,
+//   // side: THREE.DoubleSide,
+// })
+// 标准材质
+const cubeMaterial = new THREE.MeshStandardMaterial({
   color: '#ffff00',
   map: doorTextureLoader,
   alphaMap: doorAplhaTexture,
@@ -50,6 +68,10 @@ const cubeMaterial = new THREE.MeshBasicMaterial({
   transparent: true,
   // opacity: 0.5,
   // side: THREE.DoubleSide,
+  displacementMap: doorHeightexture,
+  displacementScale: 0.05,
+  roughness: 1,
+  roughnessMap: doorRoughnesstexture
 })
 
 // 生成完整的
@@ -61,7 +83,7 @@ cubeGeometry.setAttribute(
   new THREE.BufferAttribute(cubeGeometry.attributes.uv.array, 2)
 )
 
-const planeGeometry = new THREE.PlaneGeometry(1,1)
+const planeGeometry = new THREE.PlaneGeometry(1,1, 200, 200)
 const plane = new THREE.Mesh(
   planeGeometry,
   cubeMaterial
@@ -72,6 +94,14 @@ planeGeometry.setAttribute(
   'uv2',
   new THREE.BufferAttribute(planeGeometry.attributes.uv.array, 2)
 )
+
+// 环境灯光
+const light = new THREE.AmbientLight( 0xffffff, 1 ); // soft white light
+scene.add( light );
+// 平行光
+const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+directionalLight.position.set(10,10,10)
+scene.add( directionalLight );
 
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
