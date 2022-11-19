@@ -1,11 +1,6 @@
 import * as THREE from 'three'
 // 轨道控制器
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import door from '../assets/imgs/textures/door/color.jpg'
-import alpha from '../assets/imgs/textures/door/alpha.jpg'
-import doorAO from '../assets/imgs/textures/door/ambientOcclusion.jpg'
-import height from '../assets/imgs/textures/door/height.jpg'
-import roughness from '../assets/imgs/textures/door/roughness.jpg'
 
 const scene = new THREE.Scene();
 
@@ -19,13 +14,36 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(0, 0, 10)
 scene.add(camera)
 
-const textureLoader = new THREE.TextureLoader();
-const doorTextureLoader = textureLoader.load(door)
+const manager = new THREE.LoadingManager(
+  function ( ) {
+
+    console.log( 'Loading complete!');
+  
+  },
+  function ( url, itemsLoaded, itemsTotal ) {
+
+    console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+  
+  },
+  function ( url ) {
+
+    console.log( 'There was an error loading ' + url );
+  
+  }
+);
+
+const textureLoader = new THREE.TextureLoader(manager);
+const doorTextureLoader = textureLoader.load('./textures/door/color.jpg')
 // 透明材质
-const doorAplhaTexture = textureLoader.load(alpha)
-const doorAOTexture = textureLoader.load(doorAO)
-const doorHeightexture = textureLoader.load(height)
-const doorRoughnesstexture = textureLoader.load(roughness)
+const doorAplhaTexture = textureLoader.load('./textures/door/alpha.jpg')
+const doorAOTexture = textureLoader.load('./textures/door/ambientOcclusion.jpg')
+const doorHeightexture = textureLoader.load('./textures/door/height.jpg')
+const doorRoughnesstexture = textureLoader.load('./textures/door/roughness.jpg')
+const doorMetalnesstexture = textureLoader.load('./textures/door/metalness.jpg')
+const doorNormalMaptexture = textureLoader.load('./textures/door/normal.jpg')
+
+
+
 // doorTextureLoader.offset.x = 0.5;
 // doorTextureLoader.offset.y = 0.5;
 // 设置旋转中心
@@ -58,7 +76,7 @@ const cubeGeometry = new THREE.BoxGeometry(1,1,1, 200, 200);
 // })
 // 标准材质
 const cubeMaterial = new THREE.MeshStandardMaterial({
-  color: '#ffff00',
+  color: 'gray',
   map: doorTextureLoader,
   alphaMap: doorAplhaTexture,
   aoMap: doorAOTexture,
@@ -71,7 +89,10 @@ const cubeMaterial = new THREE.MeshStandardMaterial({
   displacementMap: doorHeightexture,
   displacementScale: 0.05,
   roughness: 1,
-  roughnessMap: doorRoughnesstexture
+  roughnessMap: doorRoughnesstexture,
+  metalness: 1,
+  metalnessMap: doorMetalnesstexture,
+  normalMap: doorNormalMaptexture
 })
 
 // 生成完整的
