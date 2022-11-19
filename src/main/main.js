@@ -1,7 +1,9 @@
 import * as THREE from 'three'
 // 轨道控制器
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import door from '../assets/imgs/door.jpg'
+import door from '../assets/imgs/textures/door/color.jpg'
+import alpha from '../assets/imgs/textures/door/alpha.jpg'
+import doorAO from '../assets/imgs/textures/door/ambientOcclusion.jpg'
 
 const scene = new THREE.Scene();
 
@@ -17,30 +19,59 @@ scene.add(camera)
 
 const textureLoader = new THREE.TextureLoader();
 const doorTextureLoader = textureLoader.load(door)
+// 透明材质
+const doorAplhaTexture = textureLoader.load(alpha)
+const doorAOTexture = textureLoader.load(doorAO)
 // doorTextureLoader.offset.x = 0.5;
 // doorTextureLoader.offset.y = 0.5;
 // 设置旋转中心
 // doorTextureLoader.center.set(0.5,0.5)
 // doorTextureLoader.rotation = Math.PI / 4;
-doorTextureLoader.repeat.set(2,3);
-// x轴重复 镜像重复
-doorTextureLoader.wrapS = THREE.MirroredRepeatWrapping;
-// y轴重复
-doorTextureLoader.wrapT = THREE.RepeatWrapping;
+// doorTextureLoader.repeat.set(2,3);
+// // x轴重复 镜像重复
+// doorTextureLoader.wrapS = THREE.MirroredRepeatWrapping;
+// // y轴重复
+// doorTextureLoader.wrapT = THREE.RepeatWrapping;
+
+// 纹理设置
+// doorTextureLoader.minFilter = THREE.NearestFilter;
+// doorTextureLoader.magFilter = THREE.NearestFilter;
 
 // 几何体
 const cubeGeometry = new THREE.BoxGeometry(1,1,1);
 const cubeMaterial = new THREE.MeshBasicMaterial({
   color: '#ffff00',
-  map: doorTextureLoader
+  map: doorTextureLoader,
+  alphaMap: doorAplhaTexture,
+  aoMap: doorAOTexture,
+  // 环境遮挡效果的强度
+  aoMapIntensity: 0.5,
+  // 开启透明
+  transparent: true,
+  // opacity: 0.5,
+  // side: THREE.DoubleSide,
 })
 
 // 生成完整的
 const cube = new THREE.Mesh(cubeGeometry, cubeMaterial)
 
-
-
 scene.add(cube)
+cubeGeometry.setAttribute(
+  'uv2',
+  new THREE.BufferAttribute(cubeGeometry.attributes.uv.array, 2)
+)
+
+const planeGeometry = new THREE.PlaneGeometry(1,1)
+const plane = new THREE.Mesh(
+  planeGeometry,
+  cubeMaterial
+)
+plane.position.set(1,0,0)
+scene.add(plane)
+planeGeometry.setAttribute(
+  'uv2',
+  new THREE.BufferAttribute(planeGeometry.attributes.uv.array, 2)
+)
 
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
