@@ -1,9 +1,13 @@
 {
   "name": "web3d",
+  "private": "true",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "source": "src/index.html",
+  "workspaces": [
+    "packages/*"
+  ],
+  "source": "packages/index.html",
   "scripts": {
     "start": "parcel",
     "build": "parcel build"
