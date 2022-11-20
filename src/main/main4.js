@@ -1,8 +1,9 @@
 import * as THREE from 'three'
 // 轨道控制器
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { GUI } from 'dat.gui'
-const gui = new GUI();
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader'
+
+
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(
@@ -15,63 +16,50 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(0, 0, 10)
 scene.add(camera)
 
+const rgbeLoader = new RGBELoader()
+rgbeLoader.loadAsync('textures/hdr/002.hdr').then(texture => {
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+  scene.background = texture
+  scene.environment = texture
+})
+
+// const cubeTextureLoader = new THREE.CubeTextureLoader()
+// const envMapTexture = cubeTextureLoader.load([
+//   'textures/environmentMaps/1/px.jpg',
+//   'textures/environmentMaps/1/nx.jpg',
+//   'textures/environmentMaps/1/py.jpg',
+//   'textures/environmentMaps/1/ny.jpg',
+//   'textures/environmentMaps/1/pz.jpg',
+//   'textures/environmentMaps/1/nz.jpg',
+// ])
 
 const sphereGeometry = new THREE.SphereGeometry(1,20,20)
 const material = new THREE.MeshStandardMaterial({
+  metalness: 0.7,
+  roughness: 0.1,
+  // envMap: envMapTexture
 })
 const sphere = new THREE.Mesh(
   sphereGeometry,
   material
 )
-// 物体开启阴影
-sphere.castShadow = true
 scene.add(sphere)
-
-const planeGeometry = new THREE.PlaneBufferGeometry(10,10)
-const plane = new THREE.Mesh(planeGeometry, material)
-plane.position.set(0,-1,0)
-plane.rotation.x = -Math.PI / 2;
-// 平面接收阴影
-plane.receiveShadow = true
-scene.add(plane)
+// 给场景添加背景
+// scene.background = envMapTexture
+// 给场景所有的物体添加默认的环境贴图
+// scene.environment = envMapTexture
 
 
 // 环境灯光
-const light = new THREE.AmbientLight( 0xffffff, 0.5 ); // soft white light
+const light = new THREE.AmbientLight( 0xffffff, 1 ); // soft white light
 scene.add( light );
 // 平行光
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-directionalLight.position.set(5, 5, 5);
-// 光开启动态阴影
-directionalLight.castShadow = true
-
-// 阴影模糊度
-directionalLight.shadow.radius = 20
-// 阴影分辨率
-directionalLight.shadow.mapSize.set(4096,4096)
-
-directionalLight.shadow.camera.near = 0.5
-directionalLight.shadow.camera.far = 500
-directionalLight.shadow.camera.top = 5
-directionalLight.shadow.camera.bottom = -5
-directionalLight.shadow.camera.left = -5
-directionalLight.shadow.camera.right = 5
-
+const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+directionalLight.position.set(10,10,10)
 scene.add( directionalLight );
-
-gui
-  .add(directionalLight.shadow.camera, "near")
-  .min(0)
-  .max(10)
-  .step(0.1)
-  .onChange(() => {
-    directionalLight.shadow.camera.updateProjectionMatrix();
-  });
 
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
-// 渲染器开启阴影
-renderer.shadowMap.enabled = true;
 
 document.body.appendChild(renderer.domElement)
 
