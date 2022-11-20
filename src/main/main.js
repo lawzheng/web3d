@@ -27,7 +27,7 @@ const sphere = new THREE.Mesh(
 sphere.castShadow = true
 scene.add(sphere)
 
-const planeGeometry = new THREE.PlaneBufferGeometry(10,10)
+const planeGeometry = new THREE.PlaneGeometry(50,50)
 const plane = new THREE.Mesh(planeGeometry, material)
 plane.position.set(0,-1,0)
 plane.rotation.x = -Math.PI / 2;
@@ -40,38 +40,74 @@ scene.add(plane)
 const light = new THREE.AmbientLight( 0xffffff, 0.5 ); // soft white light
 scene.add( light );
 // 平行光
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+// const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+// 聚光灯
+const directionalLight = new THREE.SpotLight(0xffffff, 0.5, 20, 1, 2);
 directionalLight.position.set(5, 5, 5);
 // 光开启动态阴影
 directionalLight.castShadow = true
+directionalLight.intensity = 2
 
 // 阴影模糊度
 directionalLight.shadow.radius = 20
 // 阴影分辨率
 directionalLight.shadow.mapSize.set(4096,4096)
+// 聚光灯对象 可以跟随移动
+directionalLight.target = sphere;
+directionalLight.angle = Math.PI / 6;
 
-directionalLight.shadow.camera.near = 0.5
-directionalLight.shadow.camera.far = 500
-directionalLight.shadow.camera.top = 5
-directionalLight.shadow.camera.bottom = -5
-directionalLight.shadow.camera.left = -5
-directionalLight.shadow.camera.right = 5
+// directionalLight.shadow.camera.near = 0.5
+// directionalLight.shadow.camera.far = 500
+// directionalLight.shadow.camera.top = 5
+// directionalLight.shadow.camera.bottom = -5
+// directionalLight.shadow.camera.left = -5
+// directionalLight.shadow.camera.right = 5
 
 scene.add( directionalLight );
 
+// gui
+//   .add(directionalLight.shadow.camera, "near")
+//   .min(0)
+//   .max(10)
+//   .step(0.1)
+//   .onChange(() => {
+//     directionalLight.shadow.camera.updateProjectionMatrix();
+//   });
 gui
-  .add(directionalLight.shadow.camera, "near")
-  .min(0)
-  .max(10)
+  .add(sphere.position, "x")
+  .min(-5)
+  .max(5)
   .step(0.1)
-  .onChange(() => {
-    directionalLight.shadow.camera.updateProjectionMatrix();
-  });
+
+gui
+  .add(directionalLight, "angle")
+  .min(Math.PI / 12)
+  .max(Math.PI)
+  .step(0.1)
+  
+gui
+  .add(directionalLight, "distance")
+  .min(0)
+  .max(20)
+  .step(0.1)
+
+gui
+  .add(directionalLight, "penumbra")
+  .min(0)
+  .max(1)
+  .step(0.1)
+
+gui
+  .add(directionalLight, "decay")
+  .min(0)
+  .max(5)
+  .step(0.1)  
 
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 // 渲染器开启阴影
 renderer.shadowMap.enabled = true;
+renderer.physicallyCorrectLights = true
 
 document.body.appendChild(renderer.domElement)
 
