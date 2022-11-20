@@ -36,17 +36,19 @@ plane.receiveShadow = true
 scene.add(plane)
 
 
+
 // 环境灯光
 const light = new THREE.AmbientLight( 0xffffff, 0.5 ); // soft white light
 scene.add( light );
 // 平行光
 // const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
 // 聚光灯
-const directionalLight = new THREE.SpotLight(0xffffff, 0.5, 20, 1, 2);
-directionalLight.position.set(5, 5, 5);
+const directionalLight = new THREE.PointLight('#ff0000', 1);
+// directionalLight.position.set(5, 5, 5);
 // 光开启动态阴影
 directionalLight.castShadow = true
-directionalLight.intensity = 2
+// directionalLight.intensity = 2
+directionalLight.decay = 0
 
 // 阴影模糊度
 directionalLight.shadow.radius = 20
@@ -54,7 +56,6 @@ directionalLight.shadow.radius = 20
 directionalLight.shadow.mapSize.set(4096,4096)
 // 聚光灯对象 可以跟随移动
 directionalLight.target = sphere;
-directionalLight.angle = Math.PI / 6;
 
 // directionalLight.shadow.camera.near = 0.5
 // directionalLight.shadow.camera.far = 500
@@ -64,6 +65,15 @@ directionalLight.angle = Math.PI / 6;
 // directionalLight.shadow.camera.right = 5
 
 scene.add( directionalLight );
+
+
+const smallBall = new THREE.Mesh(
+  new THREE.SphereGeometry(0.2, 20, 20),
+  new THREE.MeshBasicMaterial({color: 0xff0000})
+)
+smallBall.position.set(2,2,2)
+smallBall.add(directionalLight)
+scene.add( smallBall );
 
 // gui
 //   .add(directionalLight.shadow.camera, "near")
@@ -80,28 +90,11 @@ gui
   .step(0.1)
 
 gui
-  .add(directionalLight, "angle")
-  .min(Math.PI / 12)
-  .max(Math.PI)
-  .step(0.1)
-  
-gui
   .add(directionalLight, "distance")
   .min(0)
-  .max(20)
+  .max(100)
   .step(0.1)
 
-gui
-  .add(directionalLight, "penumbra")
-  .min(0)
-  .max(1)
-  .step(0.1)
-
-gui
-  .add(directionalLight, "decay")
-  .min(0)
-  .max(5)
-  .step(0.1)  
 
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
@@ -123,7 +116,13 @@ scene.add( axesHelper );
 
 controls.update();
 
+const clock = new THREE.Clock();
+
 function animate() {
+  let time = clock.getElapsedTime();
+  smallBall.position.x = Math.sin(time) * 3;
+  smallBall.position.z = Math.cos(time) * 3;
+  smallBall.position.y = 2 + Math.sin(time * 10) / 2;
   controls.update();
 	renderer.render( scene, camera );
 	requestAnimationFrame( animate );
@@ -132,6 +131,7 @@ function animate() {
 animate()
 
 window.addEventListener('resize', () => {
+  smallBall.position.x
   // 更新宽高比
   camera.aspect = window.innerWidth / window.innerHeight
   // 更新摄像机投影矩阵
