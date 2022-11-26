@@ -1,143 +1,140 @@
-import * as THREE from 'three'
-// 轨道控制器
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { GUI } from 'dat.gui'
-const gui = new GUI();
+import * as THREE from "three";
+// 导入控制器
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+// 导入水面
+import { Water } from "three/examples/jsm/objects/Water2";
+// 导入gltf载入库
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
+// 初始化场景
 const scene = new THREE.Scene();
 
+// 初始化相机
 const camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
   0.1,
-  1000
+  2000
 );
 
-camera.position.set(0, 0, 10)
-scene.add(camera)
+// 设置相机位置
+camera.position.set(-50, 50, 130);
+// 更新摄像头宽高比例
+camera.aspect = window.innerWidth / window.innerHeight;
+// 更新摄像头投影矩阵
+camera.updateProjectionMatrix();
 
+scene.add(camera);
 
-const sphereGeometry = new THREE.SphereGeometry(1,20,20)
-const material = new THREE.MeshStandardMaterial({
-})
-const sphere = new THREE.Mesh(
-  sphereGeometry,
-  material
-)
-// 物体开启阴影
-sphere.castShadow = true
-scene.add(sphere)
+// 初始化渲染器
+const renderer = new THREE.WebGLRenderer({
+  // 设置抗锯齿
+  antialias: true,
+  //   对数深度缓冲区
+  logarithmicDepthBuffer: true,
+});
+renderer.outputEncoding = THREE.sRGBEncoding;
 
-const planeGeometry = new THREE.PlaneGeometry(50,50)
-const plane = new THREE.Mesh(planeGeometry, material)
-plane.position.set(0,-1,0)
-plane.rotation.x = -Math.PI / 2;
-// 平面接收阴影
-plane.receiveShadow = true
-scene.add(plane)
+// 设置渲染器宽高
+renderer.setSize(window.innerWidth, window.innerHeight);
 
-
-
-// 环境灯光
-const light = new THREE.AmbientLight( 0xffffff, 0.5 ); // soft white light
-scene.add( light );
-// 平行光
-// const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-// 聚光灯
-const directionalLight = new THREE.PointLight('#ff0000', 1);
-// directionalLight.position.set(5, 5, 5);
-// 光开启动态阴影
-directionalLight.castShadow = true
-// directionalLight.intensity = 2
-directionalLight.decay = 0
-
-// 阴影模糊度
-directionalLight.shadow.radius = 20
-// 阴影分辨率
-directionalLight.shadow.mapSize.set(4096,4096)
-// 聚光灯对象 可以跟随移动
-directionalLight.target = sphere;
-
-// directionalLight.shadow.camera.near = 0.5
-// directionalLight.shadow.camera.far = 500
-// directionalLight.shadow.camera.top = 5
-// directionalLight.shadow.camera.bottom = -5
-// directionalLight.shadow.camera.left = -5
-// directionalLight.shadow.camera.right = 5
-
-scene.add( directionalLight );
-
-
-const smallBall = new THREE.Mesh(
-  new THREE.SphereGeometry(0.2, 20, 20),
-  new THREE.MeshBasicMaterial({color: 0xff0000})
-)
-smallBall.position.set(2,2,2)
-smallBall.add(directionalLight)
-scene.add( smallBall );
-
-// gui
-//   .add(directionalLight.shadow.camera, "near")
-//   .min(0)
-//   .max(10)
-//   .step(0.1)
-//   .onChange(() => {
-//     directionalLight.shadow.camera.updateProjectionMatrix();
-//   });
-gui
-  .add(sphere.position, "x")
-  .min(-5)
-  .max(5)
-  .step(0.1)
-
-gui
-  .add(directionalLight, "distance")
-  .min(0)
-  .max(100)
-  .step(0.1)
-
-
-const renderer = new THREE.WebGLRenderer()
-renderer.setSize(window.innerWidth, window.innerHeight)
-// 渲染器开启阴影
-renderer.shadowMap.enabled = true;
-renderer.physicallyCorrectLights = true
-
-document.body.appendChild(renderer.domElement)
-
-// renderer.render(scene, camera)
-
-const controls = new OrbitControls(camera, renderer.domElement)
-// 开启阻尼 更真实
-controls.enableDamping = true;
-
-// 坐标轴
-const axesHelper = new THREE.AxesHelper( 5 );
-scene.add( axesHelper );
-
-controls.update();
-
-const clock = new THREE.Clock();
-
-function animate() {
-  let time = clock.getElapsedTime();
-  smallBall.position.x = Math.sin(time) * 3;
-  smallBall.position.z = Math.cos(time) * 3;
-  smallBall.position.y = 2 + Math.sin(time * 10) / 2;
-  controls.update();
-	renderer.render( scene, camera );
-	requestAnimationFrame( animate );
-
-}
-animate()
-
-window.addEventListener('resize', () => {
-  smallBall.position.x
-  // 更新宽高比
-  camera.aspect = window.innerWidth / window.innerHeight
-  // 更新摄像机投影矩阵
+// 监听屏幕的大小改变，修改渲染器的宽高，相机的比例
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
-  // 更新渲染器
-  renderer.setSize(window.innerWidth, window.innerHeight)
-  // 更新像素比
-  renderer.setPixelRatio = window.devicePixelRatio;
-})
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// 将渲染器添加到页面
+document.body.appendChild(renderer.domElement);
+
+// 实例化控制器
+const controls = new OrbitControls(camera, renderer.domElement);
+
+
+// 添加平面
+// const planeGeometry = new THREE.PlaneGeometry(100, 100);
+// const planeMaterial = new THREE.MeshBasicMaterial({
+//   color: 0xffffff,
+// });
+// const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+// scene.add(plane);
+
+// 创建一个巨大的天空球体
+let texture = new THREE.TextureLoader().load("/textures/sky.jpg");
+const skyGeometry = new THREE.SphereGeometry(1000, 60, 60);
+const skyMaterial = new THREE.MeshBasicMaterial({
+  map: texture,
+});
+skyGeometry.scale(1, 1, -1);
+const sky = new THREE.Mesh(skyGeometry, skyMaterial);
+
+scene.add(sky);
+
+// 视频纹理
+const video = document.createElement("video");
+video.src = "/textures/sky.mp4";
+video.loop = true;
+
+window.addEventListener("click", (e) => {
+  // 当鼠标移动的时候播放视频
+  //   判断视频是否处于播放状态
+  if (video.paused) {
+    video.play();
+    let texture = new THREE.VideoTexture(video);
+    skyMaterial.map = texture;
+    skyMaterial.map.needsUpdate = true;
+  }
+});
+
+// 载入环境纹理hdr
+const hdrLoader = new RGBELoader();
+hdrLoader.loadAsync("/assets/050.hdr").then((texture) => {
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+  scene.background = texture;
+  scene.environment = texture;
+});
+
+// 添加平行光
+const light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(-100, 100, 10);
+scene.add(light);
+
+// 创建水面
+const waterGeometry = new THREE.CircleGeometry(300, 64);
+const water = new Water(waterGeometry, {
+  textureWidth: 1024,
+  textureHeight: 1024,
+  color: 0xeeeeff,
+  flowDirection: new THREE.Vector2(1, 1),
+  scale: 1,
+  normalMap0: new THREE.TextureLoader().load("/textures/water/Water_1_M_Normal.jpg"),
+  normalMap1: new THREE.TextureLoader().load("/textures/water/Water_2_M_Normal.jpg")
+});
+water.position.y = 3;
+// 水面旋转至水平
+water.rotation.x = -Math.PI / 2;
+scene.add(water);
+
+// 添加小岛模型
+// 实例化gltf载入库
+const loader = new GLTFLoader();
+// 实例化draco载入库
+const dracoLoader = new DRACOLoader();
+// 添加draco载入库
+dracoLoader.setDecoderPath("/draco/");
+// 添加draco载入库
+loader.setDRACOLoader(dracoLoader);
+
+loader.load("/model/island2.glb", (gltf) => {
+  scene.add(gltf.scene);
+});
+
+function render() {
+  // 渲染场景
+  renderer.render(scene, camera);
+  // 引擎自动更新渲染器
+  requestAnimationFrame(render);
+}
+render();
