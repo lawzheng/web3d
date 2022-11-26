@@ -142,13 +142,13 @@
       this[globalName] = mainExports;
     }
   }
-})({"7NwaV":[function(require,module,exports) {
+})({"g2feS":[function(require,module,exports) {
 var global = arguments[3];
 var HMR_HOST = null;
 var HMR_PORT = null;
 var HMR_SECURE = false;
 var HMR_ENV_HASH = "d6ea1d42532a7575";
-module.bundle.HMR_BUNDLE_ID = "8152eb0aeca88fe0";
+module.bundle.HMR_BUNDLE_ID = "6dd028223e143ddc";
 "use strict";
 /* global HMR_HOST, HMR_PORT, HMR_ENV_HASH, HMR_SECURE, chrome, browser, globalThis, __parcel__import__, __parcel__importScripts__, ServiceWorkerGlobalScope */ /*::
 import type {
@@ -531,7 +531,7 @@ function hmrAcceptRun(bundle, id) {
     acceptedAssets[id] = true;
 }
 
-},{}],"duXk9":[function(require,module,exports) {
+},{}],"2iMK3":[function(require,module,exports) {
 var _three = require("three");
 // 轨道控制器
 var _orbitControls = require("three/examples/jsm/controls/OrbitControls");
@@ -541,67 +541,9 @@ const scene = new _three.Scene();
 const camera = new _three.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 0, 10);
 scene.add(camera);
-const sphereGeometry = new _three.SphereGeometry(1, 20, 20);
-const material = new _three.MeshStandardMaterial({});
-const sphere = new _three.Mesh(sphereGeometry, material);
-// 物体开启阴影
-sphere.castShadow = true;
-scene.add(sphere);
-const planeGeometry = new _three.PlaneGeometry(50, 50);
-const plane = new _three.Mesh(planeGeometry, material);
-plane.position.set(0, -1, 0);
-plane.rotation.x = -Math.PI / 2;
-// 平面接收阴影
-plane.receiveShadow = true;
-scene.add(plane);
-// 环境灯光
-const light = new _three.AmbientLight(0xffffff, 0.5); // soft white light
-scene.add(light);
-// 平行光
-// const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-// 聚光灯
-const directionalLight = new _three.PointLight("#ff0000", 1);
-// directionalLight.position.set(5, 5, 5);
-// 光开启动态阴影
-directionalLight.castShadow = true;
-// directionalLight.intensity = 2
-directionalLight.decay = 0;
-// 阴影模糊度
-directionalLight.shadow.radius = 20;
-// 阴影分辨率
-directionalLight.shadow.mapSize.set(4096, 4096);
-// 聚光灯对象 可以跟随移动
-directionalLight.target = sphere;
-// directionalLight.shadow.camera.near = 0.5
-// directionalLight.shadow.camera.far = 500
-// directionalLight.shadow.camera.top = 5
-// directionalLight.shadow.camera.bottom = -5
-// directionalLight.shadow.camera.left = -5
-// directionalLight.shadow.camera.right = 5
-scene.add(directionalLight);
-const smallBall = new _three.Mesh(new _three.SphereGeometry(0.2, 20, 20), new _three.MeshBasicMaterial({
-    color: 0xff0000
-}));
-smallBall.position.set(2, 2, 2);
-smallBall.add(directionalLight);
-scene.add(smallBall);
-// gui
-//   .add(directionalLight.shadow.camera, "near")
-//   .min(0)
-//   .max(10)
-//   .step(0.1)
-//   .onChange(() => {
-//     directionalLight.shadow.camera.updateProjectionMatrix();
-//   });
-gui.add(sphere.position, "x").min(-5).max(5).step(0.1);
-gui.add(directionalLight, "distance").min(0).max(100).step(0.1);
 const renderer = new _three.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
-// 渲染器开启阴影
-renderer.shadowMap.enabled = true;
-renderer.physicallyCorrectLights = true;
 document.body.appendChild(renderer.domElement);
-// renderer.render(scene, camera)
 const controls = new (0, _orbitControls.OrbitControls)(camera, renderer.domElement);
 // 开启阻尼 更真实
 controls.enableDamping = true;
@@ -609,19 +551,13 @@ controls.enableDamping = true;
 const axesHelper = new _three.AxesHelper(5);
 scene.add(axesHelper);
 controls.update();
-const clock = new _three.Clock();
 function animate() {
-    let time = clock.getElapsedTime();
-    smallBall.position.x = Math.sin(time) * 3;
-    smallBall.position.z = Math.cos(time) * 3;
-    smallBall.position.y = 2 + Math.sin(time * 10) / 2;
     controls.update();
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
 }
 animate();
 window.addEventListener("resize", ()=>{
-    smallBall.position.x;
     // 更新宽高比
     camera.aspect = window.innerWidth / window.innerHeight;
     // 更新摄像机投影矩阵
@@ -631,7 +567,31 @@ window.addEventListener("resize", ()=>{
     // 更新像素比
     renderer.setPixelRatio = window.devicePixelRatio;
 });
+const sphereGeometry = new _three.SphereGeometry(3, 30, 30);
+// const material = new THREE.MeshBasicMaterial({
+//   color: 0xff000,
+//   wireframe: true
+// })
+// const mesh = new THREE.Mesh(sphereGeometry, material)
+// scene.add(mesh)
+const material = new _three.PointsMaterial({
+    color: 0xfff000,
+    size: 0.05,
+    // 因相机深度而衰减
+    sizeAttenuation: true
+});
+const textureLoader = new _three.TextureLoader();
+const texture = textureLoader.load("/textures/particles/1.png");
+material.map = texture;
+material.alphaMap = texture;
+material.transparent = true;
+// 叠加时透出来
+material.depthWrite = true;
+// 亮度叠加
+material.blending = _three.AdditiveBlending;
+const points = new _three.Points(sphereGeometry, material);
+scene.add(points);
 
-},{"three":"ktPTu","three/examples/jsm/controls/OrbitControls":"7mqRv","dat.gui":"k3xQk"}]},["7NwaV","duXk9"], "duXk9", "parcelRequire9b34")
+},{"three":"ktPTu","three/examples/jsm/controls/OrbitControls":"7mqRv","dat.gui":"k3xQk"}]},["g2feS","2iMK3"], "2iMK3", "parcelRequire9b34")
 
-//# sourceMappingURL=index.eca88fe0.js.map
+//# sourceMappingURL=index.3e143ddc.js.map
