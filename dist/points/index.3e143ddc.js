@@ -538,8 +538,8 @@ var _orbitControls = require("three/examples/jsm/controls/OrbitControls");
 var _datGui = require("dat.gui");
 const gui = new (0, _datGui.GUI)();
 const scene = new _three.Scene();
-const camera = new _three.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 0, 10);
+const camera = new _three.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 40);
+camera.position.set(0, 0, 30);
 scene.add(camera);
 const renderer = new _three.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -551,10 +551,51 @@ controls.enableDamping = true;
 const axesHelper = new _three.AxesHelper(5);
 scene.add(axesHelper);
 controls.update();
+function createPoints(url, size = 0.5) {
+    const particleGeometry = new _three.BufferGeometry();
+    const count = 10000;
+    const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    for(let i = 0; i < count * 3; i++){
+        positions[i] = (Math.random() - 0.5) * 100;
+        colors[i] = Math.random();
+    }
+    particleGeometry.setAttribute("position", new _three.BufferAttribute(positions, 3));
+    // particleGeometry.setAttribute(
+    //   'color', 
+    //   new THREE.BufferAttribute(colors, 3)
+    // )
+    const material = new _three.PointsMaterial({
+        color: 0xffffff,
+        size,
+        // 因相机深度而衰减
+        sizeAttenuation: true
+    });
+    const textureLoader = new _three.TextureLoader();
+    const texture = textureLoader.load(`/textures/particles/${url}.png`);
+    material.map = texture;
+    material.alphaMap = texture;
+    material.transparent = true;
+    // 叠加时透出来
+    material.depthWrite = true;
+    // 亮度叠加
+    material.blending = _three.AdditiveBlending;
+    // material.vertexColors = true
+    const points = new _three.Points(particleGeometry, material);
+    scene.add(points);
+    return points;
+}
+const points1 = createPoints("xh");
+const points2 = createPoints("xh", 1);
+const clock = new _three.Clock();
 function animate() {
     controls.update();
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
+    const time = clock.getElapsedTime();
+    points1.rotation.x = time * 0.3;
+    points2.rotation.x = time * 0.5;
+    points2.rotation.y = time * 0.4;
 }
 animate();
 window.addEventListener("resize", ()=>{
@@ -567,30 +608,6 @@ window.addEventListener("resize", ()=>{
     // 更新像素比
     renderer.setPixelRatio = window.devicePixelRatio;
 });
-const sphereGeometry = new _three.SphereGeometry(3, 30, 30);
-// const material = new THREE.MeshBasicMaterial({
-//   color: 0xff000,
-//   wireframe: true
-// })
-// const mesh = new THREE.Mesh(sphereGeometry, material)
-// scene.add(mesh)
-const material = new _three.PointsMaterial({
-    color: 0xfff000,
-    size: 0.05,
-    // 因相机深度而衰减
-    sizeAttenuation: true
-});
-const textureLoader = new _three.TextureLoader();
-const texture = textureLoader.load("/textures/particles/1.png");
-material.map = texture;
-material.alphaMap = texture;
-material.transparent = true;
-// 叠加时透出来
-material.depthWrite = true;
-// 亮度叠加
-material.blending = _three.AdditiveBlending;
-const points = new _three.Points(sphereGeometry, material);
-scene.add(points);
 
 },{"three":"ktPTu","three/examples/jsm/controls/OrbitControls":"7mqRv","dat.gui":"k3xQk"}]},["g2feS","2iMK3"], "2iMK3", "parcelRequire9b34")
 
