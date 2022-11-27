@@ -9,10 +9,10 @@ const camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
   0.1,
-  40
+  1000
 );
 
-camera.position.set(0, 0, 30)
+camera.position.set(0, 0, 10)
 scene.add(camera)
 
 
@@ -30,52 +30,86 @@ scene.add( axesHelper );
 
 controls.update();
 
+const textureLoader = new THREE.TextureLoader();
+const particlesTexture = textureLoader.load(`/textures/particles/1.png`);
 
-function createPoints(url, size = 0.5) {
-  const particleGeometry = new THREE.BufferGeometry()
-  const count = 10000
-  
-  const positions = new Float32Array(count * 3)
-  const colors = new Float32Array(count * 3)
-  for(let i = 0; i < count * 3; i++) {
-    positions[i] = (Math.random() - 0.5) * 100
-    colors[i] = Math.random()
-  }
-  particleGeometry.setAttribute(
-    'position', 
-    new THREE.BufferAttribute(positions, 3)
-  )
-  // particleGeometry.setAttribute(
-  //   'color', 
-  //   new THREE.BufferAttribute(colors, 3)
-  // )
-
-  const material = new THREE.PointsMaterial({
-    color: 0xffffff,
-    size,
-    // 因相机深度而衰减
-    sizeAttenuation: true,
-  })
-  
-  const textureLoader = new THREE.TextureLoader()
-  const texture = textureLoader.load(`/textures/particles/${url}.png`)
-  material.map = texture;
-  material.alphaMap = texture;
-  material.transparent = true;
-  // 叠加时透出来
-  material.depthWrite = true;
-  // 亮度叠加
-  material.blending = THREE.AdditiveBlending;
-  // material.vertexColors = true
-  
-  const points = new THREE.Points(particleGeometry, material)
-  scene.add(points)
-
-  return points;
+const params = {
+  count: 10000,
+  size: 0.1,
+  radius: 5,
+  branch: 10,
+  color: '#ff6030',
+  // 左右偏移量
+  rotateScale: 0.3,
+  endColor: '#1b3984',
 }
 
-const points1 = createPoints('xh');
-const points2 = createPoints('xh', 1);
+let geometry = null;
+let material = null;
+let points = null;
+const centerColor = new THREE.Color(params.color)
+const endColor = new THREE.Color(params.endColor)
+
+const generateGalaxy = () => {
+  // 生成顶点
+  geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(params.count * 3);
+  const colors = new Float32Array(params.count * 3);
+
+  for (let i = 0; i < params.count; i++) {
+    // 平分一个圆的角度
+    const branchAngel = (i % params.branch) * ((2 * Math.PI) / params.branch);
+
+    const distance = Math.random() * params.radius * Math.pow(Math.random(), 3)
+
+    const current = i * 3;
+
+    // 3次方用于在近端数量更密集
+    const randomX = (Math.pow(Math.random() * 2 - 1, 3) * (params.radius - distance)) / 5;
+    const randomY = (Math.pow(Math.random() * 2 - 1, 3) * (params.radius - distance)) / 5;
+    const randomZ = (Math.pow(Math.random() * 2 - 1, 3) * (params.radius - distance)) / 5;
+
+    positions[current] = 
+      Math.cos(branchAngel + distance * params.rotateScale) * distance + randomX;
+    positions[current + 1] = randomY;
+    positions[current + 2] = 
+      Math.sin(branchAngel + distance * params.rotateScale) * distance + randomZ;
+
+    // 颜色渐变
+    const mixColor = centerColor.clone();
+    // 越远越像endColor
+    mixColor.lerp(endColor, distance / params.radius);
+
+    colors[current] = mixColor.r;
+    colors[current + 1] = mixColor.g;
+    colors[current + 2] = mixColor.b;
+  }
+
+  geometry.setAttribute(
+    'position',
+    new THREE.BufferAttribute(positions, 3)
+  )
+  geometry.setAttribute(
+    'color',
+    new THREE.BufferAttribute(colors, 3)
+  )
+
+  material = new THREE.PointsMaterial({
+    // color: new THREE.Color(params.color),
+    size: params.size,
+    sizeAttenuation: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    map: particlesTexture,
+    alphaMap: particlesTexture,
+    transparent: true,
+    vertexColors: true,
+  });
+
+  const points = new THREE.Points(geometry, material);
+  scene.add(points);
+}
+generateGalaxy();
 
 
 const clock = new THREE.Clock()
@@ -85,9 +119,6 @@ function animate() {
 	renderer.render( scene, camera );
 	requestAnimationFrame( animate );
   const time = clock.getElapsedTime()
-  points1.rotation.x = time * 0.3
-  points2.rotation.x = time * 0.5
-  points2.rotation.y = time * 0.4
 }
 animate()
 
