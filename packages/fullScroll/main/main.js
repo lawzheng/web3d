@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 // 轨道控制器
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import gsap from 'gsap'
 
 const scene = new THREE.Scene();
 
@@ -28,7 +29,7 @@ for (let i = 0; i < 5; i++) {
   for (let j = 0; j < 5; j++) {
     for (let k = 0; k < 5; k++) {
       const cube = new THREE.Mesh(cubeGeometry, material)
-      cube.position.set(i*2 - 5,j*2 - 5,k*2 - 5)
+      cube.position.set(i*2 - 4,j*2 - 4,k*2 - 4)
       cubeArr.push(cube)
       cubeGroup.add(cube)
     }
@@ -82,6 +83,7 @@ scene.add(triangleGroup)
 const sphereGroup = new THREE.Group();
 const sphereGeometry = new THREE.SphereGeometry(1,20,20)
 const sphereMaterial = new THREE.MeshStandardMaterial({
+  side: THREE.DoubleSide
 })
 const sphere = new THREE.Mesh(
   sphereGeometry,
@@ -135,6 +137,7 @@ sphereGroup.add( smallBall );
 
 sphereGroup.position.y = -60;
 scene.add(sphereGroup)
+let arrGroup = [cubeGroup, triangleGroup, sphereGroup]
 
 
 const renderer = new THREE.WebGLRenderer({
@@ -154,24 +157,62 @@ document.body.appendChild(renderer.domElement)
 // scene.add( axesHelper );
 
 const clock= new THREE.Clock();
+
+gsap.to(cubeGroup.rotation, {
+  x: '+=' + Math.PI,
+  y: '+=' + Math.PI,
+  duration: 5,
+  repeat: -1,
+  ease: "power2.inOut"
+})
+gsap.to(triangleGroup.rotation, {
+  x: '+=' + Math.PI,
+  z: '+=' + Math.PI,
+  duration: 6,
+  repeat: -1,
+  ease: "power2.inOut"
+})
+gsap.to(smallBall.position, {
+  x: -3,
+  duration: 6,
+  repeat: -1,
+  ease: "power2.inOut",
+  yoyo: true
+})
+gsap.to(smallBall.position, {
+  y: 0,
+  duration: 0.5,
+  repeat: -1,
+  ease: "power2.inOut",
+  yoyo: true
+})
+
+const mouse = new THREE.Vector2();
+window.addEventListener('mousemove', (e) => {
+  mouse.x = ( e.clientX / window.innerWidth ) - 0.5;
+	mouse.y = - ( e.clientY / window.innerHeight ) - 0.5;
+})
+
 function animate() {
-  const time = clock.getElapsedTime()
+  // const time = clock.getElapsedTime()
+  const time = clock.getDelta();
 
-  // controls.update();
-  cubeGroup.rotation.x = time * 0.5
-  cubeGroup.rotation.y = time * 0.5
+  // cubeGroup.rotation.x = time * 0.5
+  // cubeGroup.rotation.y = time * 0.5
 
-  triangleGroup.rotation.x = time * 0.4;
-  triangleGroup.rotation.z = time * 0.3;
+  // triangleGroup.rotation.x = time * 0.4;
+  // triangleGroup.rotation.z = time * 0.3;
 
-  camera.position.y = -(window.scrollY / window.innerHeight) * 30;
 
   
-  smallBall.position.x = Math.sin(time) * 3;
-  smallBall.position.z = Math.cos(time) * 3;
-  smallBall.position.y = 2 + Math.sin(time * 10) / 2;
-  sphereGroup.rotation.z = Math.sin(time) * 0.05;
-  sphereGroup.rotation.x = Math.sin(time) * 0.05;
+  // smallBall.position.x = Math.sin(time) * 3;
+  // smallBall.position.z = Math.cos(time) * 3;
+  // smallBall.position.y = 2 + Math.sin(time * 10) / 2;
+  // sphereGroup.rotation.z = Math.sin(time) * 0.05;
+  // sphereGroup.rotation.x = Math.sin(time) * 0.05;
+
+  camera.position.y = -(window.scrollY / window.innerHeight) * 30;
+  camera.position.x += (mouse.x * 10 - camera.position.x) * time * 5;
 
 
 	renderer.render( scene, camera );
@@ -196,5 +237,19 @@ window.addEventListener('scroll', () => {
   const newPage = Math.round(window.scrollY / window.innerHeight);
   if (newPage !== currentPage) {
     currentPage = newPage;
+    
+    gsap.to(arrGroup[currentPage].rotation, {
+      z: "+=" + Math.PI,
+      x: "+=" + Math.PI,
+      duration: 2,
+    })
+
+    gsap.fromTo(`.page${currentPage + 1} h1`, {
+      x: -300
+    }, {
+      x: 0,
+      rotation: '+=360',
+      duration: 1,
+    })
   }
 })

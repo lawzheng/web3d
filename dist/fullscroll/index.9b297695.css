@@ -32,4 +32,8 @@ canvas {
   left: 0;
 }
 
+::-webkit-scrollbar {
+  display: none;
+}
+
 /*# sourceMappingURL=index.9b297695.css.map */
