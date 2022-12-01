@@ -46,7 +46,7 @@ const world = new CANNON.World()
 world.gravity.set(0, -9.8, 0);
 // 创建物理小球
 const sphereShape = new CANNON.Sphere(1);
-const sphereWorldMaterial = new CANNON.Material();
+const sphereWorldMaterial = new CANNON.Material('sphere');
 // 创建物理世界的物体
 const sphereBody = new CANNON.Body({
   shape: sphereShape,
@@ -64,7 +64,9 @@ const hitSound = new Audio('/assets/hitSound.mp3')
 function hitEvent (e) {
   // 碰撞强度
   const impactStrength = e.contact.getImpactVelocityAlongNormal();
-  if (impactStrength > 5) {
+  if (impactStrength > 2) {
+    // 重新播放
+    hitSound.currentTime = 0;
     hitSound.play()
   }
 }
@@ -76,6 +78,21 @@ sphereBody.addEventListener('collide', hitEvent)
 // 物理世界地面
 const floorShape = new CANNON.Plane()
 const floorBody = new CANNON.Body();
+const floorMaterial = new CANNON.Material('floor');
+floorBody.material = floorMaterial;
+
+const defaultContactMaterial = new CANNON.ContactMaterial(
+  sphereWorldMaterial,
+  floorMaterial,
+  {
+    // 摩擦力
+    friction: 0.1,
+    // 弹性
+    restitution: 0.7
+  }
+);
+world.addContactMaterial(defaultContactMaterial);
+
 // 质量为0可以保持不动
 floorBody.mass = 0;
 floorBody.addShape(floorShape);
