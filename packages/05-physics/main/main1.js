@@ -17,54 +17,13 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(0, 0, 10)
 scene.add(camera)
 
-const cubeArr = [];
-const cubeWorldMaterial = new CANNON.Material('cube');
-function createCube () {
-  const cubeGeometry = new THREE.BoxGeometry(1,1,1)
-  const cubeMaterial = new THREE.MeshStandardMaterial()
-  const cube = new THREE.Mesh(cubeGeometry, cubeMaterial)
-  cube.castShadow = true;
-  scene.add(cube)
 
-  // 创建物理小球
-  const cubeShape = new CANNON.Box(new CANNON.Vec3(0.5,0.5,0.5));
-  // 创建物理世界的物体
-  const cubeBody = new CANNON.Body({
-    shape: cubeShape,
-    position: new CANNON.Vec3(0,0,0),
-    // 质量
-    mass: 1,
-    // 材质
-    material: cubeWorldMaterial,
-  })
-  // 物体添加到物理世界
-  world.addBody(cubeBody)
-  const hitSound = new Audio('/assets/hitSound.mp3')
-  
-  function hitEvent (e) {
-    // 碰撞强度
-    const impactStrength = e.contact.getImpactVelocityAlongNormal();
-    if (impactStrength > 2) {
-      // 重新播放
-      hitSound.currentTime = 0;
-      hitSound.volume = Math.min(1, impactStrength / 10);
-      hitSound.play()
-    }
-  }
 
-  // 监听碰撞事件
-  cubeBody.addEventListener('collide', hitEvent);
-
-  cubeArr.push({
-    mesh: cube,
-    body: cubeBody,
-  })
-}
-
-window.addEventListener('click', () => {
-  createCube();
-})
-
+const sphereGeometry = new THREE.SphereGeometry(1,200,200)
+const sphereMaterial = new THREE.MeshStandardMaterial()
+const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial)
+sphere.castShadow = true;
+scene.add(sphere)
 
 const floor = new THREE.Mesh(
   new THREE.PlaneGeometry(20, 20),
@@ -85,6 +44,36 @@ scene.add(dirLight);
 // const world = new CANNON.World({ gravity: 9.8 })
 const world = new CANNON.World()
 world.gravity.set(0, -9.8, 0);
+// 创建物理小球
+const sphereShape = new CANNON.Sphere(1);
+const sphereWorldMaterial = new CANNON.Material('sphere');
+// 创建物理世界的物体
+const sphereBody = new CANNON.Body({
+  shape: sphereShape,
+  position: new CANNON.Vec3(0,0,0),
+  // 质量
+  mass: 1,
+  // 材质
+  material: sphereWorldMaterial,
+})
+// 物体添加到物理世界
+world.addBody(sphereBody)
+
+const hitSound = new Audio('/assets/hitSound.mp3')
+
+function hitEvent (e) {
+  // 碰撞强度
+  const impactStrength = e.contact.getImpactVelocityAlongNormal();
+  if (impactStrength > 2) {
+    // 重新播放
+    hitSound.currentTime = 0;
+    hitSound.play()
+  }
+}
+
+
+// 监听碰撞事件
+sphereBody.addEventListener('collide', hitEvent)
 
 // 物理世界地面
 const floorShape = new CANNON.Plane()
@@ -93,7 +82,7 @@ const floorMaterial = new CANNON.Material('floor');
 floorBody.material = floorMaterial;
 
 const defaultContactMaterial = new CANNON.ContactMaterial(
-  cubeWorldMaterial,
+  sphereWorldMaterial,
   floorMaterial,
   {
     // 摩擦力
@@ -103,7 +92,6 @@ const defaultContactMaterial = new CANNON.ContactMaterial(
   }
 );
 world.addContactMaterial(defaultContactMaterial);
-world.defaultContactMaterial = defaultContactMaterial;
 
 // 质量为0可以保持不动
 floorBody.mass = 0;
@@ -133,12 +121,8 @@ function animate() {
 
   // 更新物理引擎世界中的物体
   world.step(1/120, deltaTime);
-  // cube.position.copy(cubeBody.position)
-  cubeArr.forEach(item => {
-    item.mesh.position.copy(item.body.position)
-    // 旋转
-    item.mesh.quaternion.copy(item.body.quaternion)
-  })
+  // 
+  sphere.position.copy(sphereBody.position)
 
   controls.update();
 	renderer.render( scene, camera );
