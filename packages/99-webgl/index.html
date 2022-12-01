@@ -32,8 +32,9 @@
     // 创建顶点着色器的源码，需要编写glsl代码
     gl.shaderSource(vertexShader, `
       attribute vec4 a_Position;
+      uniform mat4 u_Mat;
       void main() {
-        gl_Position = a_Position;
+        gl_Position = u_Mat * a_Position;
       }
     `)
     // 编译顶点着色器
@@ -74,8 +75,33 @@
     // 启用顶点着色器中的变量
     gl.enableVertexAttribArray(a_Position);
 
-    // 绘制三角形
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    // 清除canvas
+    gl.clearColor(0,0,0,0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+
+    const scale = {
+      x: 0.5,
+      y: 0.5,
+      z: 0.5,
+    }
+    
+
+    function animate() {
+      scale.x -= 0.01;
+      const mat = new Float32Array([
+        scale.x,0,0,0,
+        0,scale.x,0,0,
+        0,0,scale.x,0,
+        0,0,0,1,
+      ])
+      const u_Mat = gl.getUniformLocation(program, 'u_Mat')
+      gl.uniformMatrix4fv(u_Mat, false, mat)
+      // 绘制三角形
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      window.requestAnimationFrame(animate)
+    }
+    animate();
   </script>
 </body>
 </html>
