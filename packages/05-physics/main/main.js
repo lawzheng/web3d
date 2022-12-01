@@ -37,6 +37,13 @@ function createCube () {
     // 材质
     material: cubeWorldMaterial,
   })
+  // 施加外力
+  cubeBody.applyLocalForce(
+    // 外力放心
+    new CANNON.Vec3(300,0,0),
+    // 作用位置
+    new CANNON.Vec3(0,0,0),
+  )
   // 物体添加到物理世界
   world.addBody(cubeBody)
   const hitSound = new Audio('/assets/hitSound.mp3')
