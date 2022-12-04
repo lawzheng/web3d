@@ -3,8 +3,8 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GUI } from 'dat.gui'
 
-import deepVertexShader from '../shader/deep/vertex.glsl'
-import deepFragmentShader from '../shader/deep/fragment.glsl'
+import rawVertexShader from '../shader/raw/vertex.glsl'
+import rawFragmentShader from '../shader/raw/fragment.glsl'
 
 import ca from '../assets/imgs/ca.jpg'
 
@@ -27,8 +27,8 @@ const texture = textureLoader.load(ca);
 // const material = new THREE.MeshBasicMaterial({ color: '#00ff00' })
 // 创建着色器
 const rawShaderMaterial= new THREE.RawShaderMaterial({
-  vertexShader: deepVertexShader,
-  fragmentShader: deepFragmentShader,
+  vertexShader: rawVertexShader,
+  fragmentShader: rawFragmentShader,
   // wireframe: true,
   side: THREE.DoubleSide,
   uniforms: {
@@ -38,8 +38,7 @@ const rawShaderMaterial= new THREE.RawShaderMaterial({
     uTexture: {
       value: texture
     }
-  },
-  transparent: true
+  }
 })
 const floor = new THREE.Mesh(
   new THREE.PlaneGeometry(1,1,64,64),
@@ -50,8 +49,7 @@ scene.add(floor)
 
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
-document.body.appendChild(renderer.domElement);
-// renderer.setClearColor('#383539', 1);
+document.body.appendChild(renderer.domElement)
 
 const controls = new OrbitControls(camera, renderer.domElement)
 // 开启阻尼 更真实
