@@ -16,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@parcel/transformer-glsl": "2.8.0",
     "parcel": "^2.8.0"
   },
   "dependencies": {
