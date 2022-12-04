@@ -3,8 +3,8 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GUI } from 'dat.gui'
 
-import rawVertexShader from '../shader/raw/vertex.glsl'
-import rawFragmentShader from '../shader/raw/fragment.glsl'
+import basicVertexShader from '../shader/basic/vertex.glsl'
+import basicFragmentShader from '../shader/basic/fragment.glsl'
 
 const gui = new GUI();
 const scene = new THREE.Scene();
@@ -21,13 +21,13 @@ scene.add(camera)
 
 // const material = new THREE.MeshBasicMaterial({ color: '#00ff00' })
 // 创建着色器
-const rawShaderMaterial= new THREE.RawShaderMaterial({
-  vertexShader: rawVertexShader,
-  fragmentShader: rawFragmentShader
+const shaderMaterial= new THREE.ShaderMaterial({
+  vertexShader: basicVertexShader,
+  fragmentShader: basicFragmentShader
 })
 const floor = new THREE.Mesh(
   new THREE.PlaneGeometry(1,1,64,64),
-  rawShaderMaterial
+  shaderMaterial
 )
 scene.add(floor)
 
