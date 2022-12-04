@@ -23,7 +23,9 @@ scene.add(camera)
 // 创建着色器
 const rawShaderMaterial= new THREE.RawShaderMaterial({
   vertexShader: rawVertexShader,
-  fragmentShader: rawFragmentShader
+  fragmentShader: rawFragmentShader,
+  // wireframe: true,
+  side: THREE.DoubleSide,
 })
 const floor = new THREE.Mesh(
   new THREE.PlaneGeometry(1,1,64,64),
