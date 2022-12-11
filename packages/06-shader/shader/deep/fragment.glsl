@@ -2,6 +2,8 @@ precision lowp float;
 
 varying vec2 vUv;
 
+#define PI 3.14159265354
+
 float random (vec2 st) {
   return fract(sin(dot(st.xy, vec2(12.9898,78.233)))* 43758.5453123);
 }
@@ -92,14 +94,79 @@ void main() {
 
 
   // 旋转飞镖
-  vec2 rotateUv = rotate(vUv, -uTime * 5.0, vec2(0.5));
-  float strength = 0.15 / distance(
-    vec2(rotateUv.x, (rotateUv.y - 0.5) * 5.0 + 0.5),
-    vec2(0.5,0.5)
-  ) - 1.0;
-  strength += 0.15 / distance(
-    vec2(rotateUv.y, (rotateUv.x - 0.5) * 5.0 + 0.5),
-    vec2(0.5,0.5)
-  ) - 1.0;
-  gl_FragColor = vec4(strength, strength, strength, strength);
+  // vec2 rotateUv = rotate(vUv, -uTime * 5.0, vec2(0.5));
+  // float strength = 0.15 / distance(
+  //   vec2(rotateUv.x, (rotateUv.y - 0.5) * 5.0 + 0.5),
+  //   vec2(0.5,0.5)
+  // ) - 1.0;
+  // strength += 0.15 / distance(
+  //   vec2(rotateUv.y, (rotateUv.x - 0.5) * 5.0 + 0.5),
+  //   vec2(0.5,0.5)
+  // ) - 1.0;
+  // gl_FragColor = vec4(strength, strength, strength, strength);
+
+  // 日本国旗 画圆
+  // float strength = step(0.5, distance(vUv, vec2(0.5)) + 0.25);
+  // gl_FragColor = vec4(strength, strength, strength, 1.0);
+
+  // 圆环
+  // float strength = step(0.5, distance(vUv, vec2(0.5)) + 0.35);
+  // strength *= 1.0 - step(0.5, distance(vUv, vec2(0.5)) + 0.25);
+  // gl_FragColor = vec4(strength, strength, strength, 1.0);
+
+  // 渐变环
+  // float strength = abs(distance(vUv, vec2(0.5)) - 0.25);
+  // gl_FragColor = vec4(strength, strength, strength, 1.0);
+
+  // 圆环
+  // float strength = step(0.1, abs(distance(vUv, vec2(0.5)) - 0.25));
+  // gl_FragColor = vec4(strength, strength, strength, 1.0);
+
+
+  // 改变半径就可以做光圈扫描效果
+  // float strength = 1.0 - step(0.1, abs(distance(vUv, vec2(0.5)) - 0.25));
+  // gl_FragColor = vec4(strength, strength, strength, 1.0);
+
+  // 波浪环
+  // vec2 waveUv = vec2(
+  //   vUv.x,
+  //   vUv.y + sin(vUv.x * 30.0) * 0.1
+  // );
+  // float strength = 1.0 - step(0.1, abs(distance(waveUv, vec2(0.5)) - 0.25));
+  // gl_FragColor = vec4(strength, strength, strength, 1.0);
+
+  // 随机图案
+  // vec2 waveUv = vec2(
+  //   vUv.x + sin(vUv.y * 100.0) * 0.1,
+  //   vUv.y + sin(vUv.x * 100.0) * 0.1
+  // );
+  // float strength = 1.0 - step(0.1, abs(distance(waveUv, vec2(0.5)) - 0.25));
+  // gl_FragColor = vec4(strength, strength, strength, 1.0);
+
+  // 根据角度显示视图
+  // float angle = atan(vUv.x, vUv.y);
+  // float strength = angle;
+  // gl_FragColor = vec4(strength, strength, strength, 1.0);
+
+  // 根据角度实现螺旋渐变
+  // float angle = atan(vUv.x - 0.5, vUv.y - 0.5);
+  // float strength = (angle + 3.14) / 6.28;
+  // gl_FragColor = vec4(strength, strength, strength, 1.0);
+
+  // 雷达扫描
+  // vec2 rotateUv = rotate(vUv, -uTime * 5.0, vec2(0.5));
+  // float alpha = 1.0 - step(0.5, distance(rotateUv, vec2(0.5)));
+  // float angle = atan(rotateUv.x - 0.5, rotateUv.y - 0.5);
+  // float strength = (angle + 3.14) / 6.28;
+  // gl_FragColor = vec4(strength, strength, strength, alpha);
+
+  // 万花筒
+  // float angle = atan(vUv.x - 0.5, vUv.y - 0.5) / PI;
+  // float strength = mod(angle * 20.0, 1.0);
+  // gl_FragColor = vec4(strength, strength, strength, 1);
+
+  // 光芒四射
+  float angle = atan(vUv.x - 0.5, vUv.y - 0.5) / (2.0 * PI);
+  float strength = sin(angle * 100.0);
+  gl_FragColor = vec4(strength, strength, strength, 1);
 }
