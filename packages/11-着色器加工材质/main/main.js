@@ -2,7 +2,13 @@ import * as THREE from 'three'
 // 轨道控制器
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GUI } from 'dat.gui'
-import { GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader';
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { DotScreenShader } from 'three/examples/jsm/shaders/DotScreenShader.js';
+
 const gui = new GUI();
 const scene = new THREE.Scene();
 
@@ -26,65 +32,57 @@ const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableDamping = true;
 
 // 坐标轴
-const axesHelper = new THREE.AxesHelper( 5 );
-scene.add( axesHelper );
+const axesHelper = new THREE.AxesHelper(5);
+scene.add(axesHelper);
 
-const light = new THREE.AmbientLight( 0x404040 ); // soft white light
-scene.add( light );
+composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
 
-const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+// const effect1 = new ShaderPass(DotScreenShader);
+// effect1.uniforms['scale'].value = 4;
+// composer.addPass(effect1);
 
-directionalLight.position.z = 5;
-scene.add( directionalLight );
+const shaderPasss = new ShaderPass({
+  uniforms: {
+    tDiffuse: {
+      value: null
+    },
+    uColor: {
+      value: new THREE.Color(0,0,0)
+    }
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix*vec4(position,1.0);
+    }
+  `,
+  fragmentShader: `
+    varying vec2 vUv;
+    uniform sampler2D tDiffuse;
+    uniform vec3 uColor;
+    void main() {
+      vec4 color = texture2D(tDiffuse,vUv);
+      color.xyz += uColor;
+      gl_FragColor = color;
+    }
+  `,
+});
+composer.addPass(shaderPasss);
 
-const floorPlane = new THREE.PlaneGeometry(10,10, 64, 64);
+new RGBELoader().load('/model/royal_esplanade_1k.hdr', function (texture) {
 
-const basicMaterial = new THREE.MeshBasicMaterial({
-  color: '#ffffff',
-  side: THREE.DoubleSide,
-})
+  texture.mapping = THREE.EquirectangularReflectionMapping;
 
-
-const floor = new THREE.Mesh(
-  floorPlane,
-  basicMaterial,
-)
-floor.position.set(0,0,-6)
-scene.add(floor)
-
-const textureLoader = new THREE.TextureLoader();
+  scene.background = texture;
+  scene.environment = texture;
+});
 
 
 const gltfLoader = new GLTFLoader();
-gltfLoader.load('/textures/man/man_base_mesh.glb', (gltf) => {
-  const mesh = gltf.scene.children[0];
-  console.log(mesh);
-  scene.add(mesh)
-
-  
-  mesh.children[0].children[9].material.onBeforeCompile = (shader, render) => {
-    console.log(shader.vertexShader)
-
-    shader.vertexShader = shader.vertexShader.replace(
-      `#include <common>`,
-      `#include <common>
-      mat2 rotate2d(float _angle){
-        return mat2(cos(_angle), -sin(_angle),
-        sin(_angle),cos(_angle));
-      }
-      `
-    )
-
-    shader.vertexShader = shader.vertexShader.replace(
-      `#include <begin_vertex>`,
-      `#include <begin_vertex>
-      float angle = transformed.y;
-      mat2 roatetMatrix = rotate2d(angle);
-      transformed.xz = roatetMatrix * transformed.xz;
-      `
-    )
-    
-  }
+gltfLoader.load('/model/DamagedHelmet/glTF/DamagedHelmet.gltf', (gltf) => {
+  scene.add(gltf.scene);
 })
 
 
@@ -95,9 +93,9 @@ gltfLoader.load('/textures/man/man_base_mesh.glb', (gltf) => {
 
 function animate() {
   controls.update();
-	renderer.render( scene, camera );
-	requestAnimationFrame( animate );
-
+  renderer.render(scene, camera);
+  composer.render();
+  requestAnimationFrame(animate);
 }
 animate()
 
@@ -110,4 +108,5 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight)
   // 更新像素比
   renderer.setPixelRatio = window.devicePixelRatio;
+  composer.setSize(window.innerWidth, window.innerHeight);
 })
