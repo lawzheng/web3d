@@ -94,7 +94,22 @@ controls.enableDamping = true;
 
 const raycaster = new THREE.Raycaster();
 
+const curve = new THREE.CatmullRomCurve3( [
+	new THREE.Vector3( -10, 0, 10 ),
+	new THREE.Vector3( -5, 5, 5 ),
+	new THREE.Vector3( 0, 0, 5 ),
+	new THREE.Vector3( 5, -5, 5 ),
+	new THREE.Vector3( 10, 0, 10 )
+], true );
 
+const points = curve.getPoints( 50 );
+const geometry = new THREE.BufferGeometry().setFromPoints( points );
+
+const material = new THREE.LineBasicMaterial( { color: 0xff0000 } );
+
+// Create the final object to add to the scene
+const curveObject = new THREE.Line( geometry, material );
+scene.add(curveObject)
 
 const clock = new THREE.Clock();
 
@@ -104,7 +119,11 @@ function animate() {
   renderer.render(scene, camera);
   labelRenderer.render(scene, camera);
 
-  moon.position.set(Math.sin(time) * 5, 0, Math.cos(time) * 5)
+  // 沿曲线运动
+  const point = curve.getPoint(time / 10 % 1);
+  moon.position.copy(point);
+  camera.position.copy(point);
+  camera.lookAt(earth.position)
 
   const chinaPosition = chinaLabel.position.clone();
   const labelDistance = chinaPosition.distanceTo(camera.position);
