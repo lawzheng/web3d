@@ -1,7 +1,2 @@
 /node_modules
 /.parcel-cache
-/dist
-!/dist/assets
-!/dist/draco
-!/dist/modal
-!/dist/textures
