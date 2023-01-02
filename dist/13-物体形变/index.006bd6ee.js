@@ -559,14 +559,14 @@ const params = {
 const gltfLoader = new (0, _gltfloader.GLTFLoader)();
 gltfLoader.load("/textures/flower2.glb", (gltf)=>{
     scene.add(gltf.scene);
-    let flower2 = gltf.scene.children[0].children[0].children[0];
+    let flower2 = gltf.scene.children[0];
     gltfLoader.load("/textures/flower1.glb", (gltf2)=>{
         flower2.geometry.morphAttributes.position = [];
-        flower2.geometry.morphAttributes.position.push(gltf2.scene.children[0].children[0].children[0].geometry.attributes.position);
+        flower2.geometry.morphAttributes.position.push(gltf2.scene.children[0].geometry.attributes.position);
         flower2.updateMorphTargets();
         (0, _gsapDefault.default).to(params, {
             value: 1,
-            duration: 4,
+            duration: 2,
             repeat: -1,
             yoyo: true,
             onUpdate: ()=>{
