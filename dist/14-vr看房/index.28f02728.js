@@ -535,108 +535,252 @@ function hmrAcceptRun(bundle, id) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 var _three = require("three");
 // 轨道控制器
-var _orbitControls = require("three/examples/jsm/controls/OrbitControls");
 var _datGui = require("dat.gui");
 var _gsap = require("gsap");
 var _gsapDefault = parcelHelpers.interopDefault(_gsap);
+var _spriteCanvas = require("./SpriteCanvas");
+var _spriteCanvasDefault = parcelHelpers.interopDefault(_spriteCanvas);
 const gui = new (0, _datGui.GUI)();
 const scene = new _three.Scene();
+const container = document.querySelector(".container");
+const tagDiv = document.querySelector(".tag");
+const progressDiv = document.querySelector("#progress");
 const camera = new _three.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 0, 0.1);
 scene.add(camera);
-function makeCube(position, arrImg, imgPath) {
-    const geometry = new _three.BoxGeometry(500, 500, 500);
-    // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 })
-    const boxMaterial = [];
-    arrImg.forEach((item)=>{
-        const textureLoader = new _three.TextureLoader();
-        const texture = textureLoader.load(`/textures/imgs/${imgPath}/${item}.jpg`);
-        if (item === arrImg[2] || item === arrImg[3]) {
-            texture.rotation = Math.PI;
-            texture.center = new _three.Vector2(0.5, 0.5);
-        }
-        boxMaterial.push(new _three.MeshBasicMaterial({
-            map: texture
-        }));
-    });
-    const cube = new _three.Mesh(geometry, boxMaterial);
-    cube.position.set(position.x, position.y, position.z);
-    cube.geometry.scale(1, 1, -1);
-    scene.add(cube);
-    cube.name = imgPath;
-    return cube;
-}
-const home = {
-    livingRoom: makeCube(new _three.Vector3(0, 0, 0), [
-        "4_l",
-        "4_r",
-        "4_u",
-        "4_d",
-        "4_b",
-        "4_f"
-    ], "living"),
-    kitchen: makeCube(new _three.Vector3(500, 0, -360), [
-        "0_l",
-        "0_r",
-        "0_u",
-        "0_d",
-        "0_b",
-        "0_f"
-    ], "kitchen")
-};
-const raycaster = new _three.Raycaster();
-const mouse = new _three.Vector2();
-const mouseDown = (e)=>{
-    e.preventDefault();
-    mouse.x = e.clientX / window.innerWidth * 2 - 1;
-    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(scene.children);
-    if (intersects.length > 0) {
-        if (intersects[0].object.name.includes("_sprite")) {
-            const key = intersects[0].object.name.split("_")[0];
-            if (home[key]) (0, _gsapDefault.default).to(controls.target, {
-                duration: 0.5,
-                x: home[key].position.x,
-                y: home[key].position.y,
-                z: home[key].position.z,
-                onComplete: ()=>{
-                    (0, _gsapDefault.default).to(camera.position, {
-                        duration: 0.5,
-                        x: home[key].position.x - 1,
-                        y: home[key].position.y,
-                        z: home[key].position.z + 1
-                    });
-                }
-            });
-        }
+class Room {
+    constructor(name, roomIndex, textureUrl, position = new _three.Vector3(0, 0, 0), euler = new _three.Euler(0, 0, 0)){
+        this.name = name;
+        // 添加立方体
+        const geometry = new _three.BoxGeometry(10, 10, 10);
+        geometry.scale(1, 1, -1);
+        // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        // const cube = new THREE.Mesh(geometry, material);
+        // scene.add(cube);
+        // 4_b,
+        var arr = [
+            `${roomIndex}_l`,
+            `${roomIndex}_r`,
+            `${roomIndex}_u`,
+            `${roomIndex}_d`,
+            `${roomIndex}_b`,
+            `${roomIndex}_f`
+        ];
+        var boxMaterials = [];
+        arr.forEach((item)=>{
+            // 纹理加载
+            let texture = new _three.TextureLoader().load(`/textures/room2/${textureUrl}/${item}.jpg`);
+            // 创建材质
+            if (item === `${roomIndex}_u` || item === `${roomIndex}_d`) {
+                texture.rotation = Math.PI;
+                texture.center = new _three.Vector2(0.5, 0.5);
+                boxMaterials.push(new _three.MeshBasicMaterial({
+                    map: texture
+                }));
+            } else boxMaterials.push(new _three.MeshBasicMaterial({
+                map: texture
+            }));
+        });
+        const cube = new _three.Mesh(geometry, boxMaterials);
+        cube.position.copy(position);
+        cube.rotation.copy(euler);
+        // cube.geometry.scale(1, 1, -1);
+        scene.add(cube);
+        _three.DefaultLoadingManager.onProgress = function(item, loaded, total) {
+            const progress = new Number(loaded / total * 100).toFixed(2);
+            progressDiv.innerHTML = `${progress}%`;
+            if (progress === "100.00") {
+                document.querySelector(".loading").style.display = "none";
+                document.querySelector(".progress").style.display = "none";
+            }
+        };
     }
-};
-window.addEventListener("mousedown", mouseDown);
-const spriteMap = new _three.TextureLoader().load("/textures/imgs/up.png");
-const spriteMatrial = new _three.SpriteMaterial({
-    map: spriteMap,
-    color: 0xffffff,
-    transparent: true,
-    blending: _three.AdditiveBlending
+}
+function moveTag(name) {
+    let positions = {
+        客厅: [
+            100,
+            110
+        ],
+        厨房: [
+            180,
+            190
+        ],
+        阳台: [
+            50,
+            50
+        ],
+        主卧: [
+            160,
+            40
+        ],
+        走廊: [
+            150,
+            90
+        ]
+    };
+    if (positions[name]) (0, _gsapDefault.default).to(tagDiv, {
+        duration: 1,
+        x: positions[name][0],
+        y: positions[name][1],
+        ease: "power3.inOut"
+    });
+}
+// 创建客厅
+let livingIndex = 0;
+let livingUrl = "livingroom";
+let livingPosition = new _three.Vector3(0, 0, 0);
+const living = new Room("客厅", livingIndex, livingUrl, livingPosition);
+// 创建厨房
+let kitPosition = new _three.Vector3(-5, 0, -10);
+let kitIndex = 3;
+let textureUrl = "kitchen";
+let kitEuler = new _three.Euler(0, -Math.PI / 2, 0);
+const room = new Room("厨房", kitIndex, textureUrl, kitPosition, kitEuler);
+// 创建文字精灵
+const text = new (0, _spriteCanvasDefault.default)(camera, "厨房", new _three.Vector3(-1, 0, -3));
+// text.mesh.rotation.y = Math.PI / 3;
+scene.add(text.mesh);
+text.onClick(()=>{
+    console.log("厨房");
+    (0, _gsapDefault.default).to(camera.position, {
+        x: kitPosition.x,
+        y: kitPosition.y,
+        z: kitPosition.z,
+        duration: 1
+    });
+    moveTag("厨房");
 });
-const sprite = new _three.Sprite(spriteMatrial);
-sprite.position.set(245, -12, -181);
-sprite.scale.set(25, 25, 25);
-sprite.name = "kitchen_sprite";
-scene.add(sprite);
+// 创建客厅文字精灵
+const textLiving = new (0, _spriteCanvasDefault.default)(camera, "客厅", new _three.Vector3(-4, 0, -6));
+scene.add(textLiving.mesh);
+textLiving.onClick(()=>{
+    console.log("客厅");
+    (0, _gsapDefault.default).to(camera.position, {
+        x: livingPosition.x,
+        y: livingPosition.y,
+        z: livingPosition.z,
+        duration: 1
+    });
+    moveTag("客厅");
+});
+// 创建阳台
+let balconyPosition = new _three.Vector3(0, 0, 15);
+let balconyIndex = 8;
+let balconyUrl = "balcony";
+let balconyEuler = new _three.Euler(0, Math.PI / 16, 0);
+const balcony = new Room("阳台", balconyIndex, balconyUrl, balconyPosition, balconyEuler);
+// 创建阳台文字精灵
+const textBalcony = new (0, _spriteCanvasDefault.default)(camera, "阳台", new _three.Vector3(0, 0, 3));
+scene.add(textBalcony.mesh);
+textBalcony.onClick(()=>{
+    console.log("阳台");
+    (0, _gsapDefault.default).to(camera.position, {
+        x: balconyPosition.x,
+        y: balconyPosition.y,
+        z: balconyPosition.z,
+        duration: 1
+    });
+    moveTag("阳台");
+});
+// 创建阳台回客厅文字精灵
+const textBalconyToLiving = new (0, _spriteCanvasDefault.default)(camera, "客厅", new _three.Vector3(-1, 0, 11));
+scene.add(textBalconyToLiving.mesh);
+textBalconyToLiving.onClick(()=>{
+    console.log("客厅");
+    (0, _gsapDefault.default).to(camera.position, {
+        x: livingPosition.x,
+        y: livingPosition.y,
+        z: livingPosition.z,
+        duration: 1
+    });
+    moveTag("客厅");
+});
+// 创建走廊
+let hallwayPosition = new _three.Vector3(-15, 0, 0);
+let hallwayIndex = 9;
+let hallwayUrl = "corridor";
+let hallwayEuler = new _three.Euler(0, -Math.PI + Math.PI / 16, 0);
+const hallway = new Room("走廊", hallwayIndex, hallwayUrl, hallwayPosition, hallwayEuler);
+// 走廊文字精灵
+const textCorridor = new (0, _spriteCanvasDefault.default)(camera, "走廊", new _three.Vector3(-4, 0, 0.5));
+scene.add(textCorridor.mesh);
+textCorridor.onClick(()=>{
+    console.log("走廊");
+    (0, _gsapDefault.default).to(camera.position, {
+        x: hallwayPosition.x,
+        y: hallwayPosition.y,
+        z: hallwayPosition.z,
+        duration: 1
+    });
+    moveTag("走廊");
+});
+// 创建走廊回客厅文字精灵
+const textCorridorToLiving = new (0, _spriteCanvasDefault.default)(camera, "客厅", new _three.Vector3(-11, 0, 0));
+scene.add(textCorridorToLiving.mesh);
+textCorridorToLiving.onClick(()=>{
+    console.log("客厅");
+    (0, _gsapDefault.default).to(camera.position, {
+        x: livingPosition.x,
+        y: livingPosition.y,
+        z: livingPosition.z,
+        duration: 1
+    });
+    moveTag("客厅");
+});
+// 创建主卧
+let mainPosition = new _three.Vector3(-25, 0, 2);
+let mainIndex = 18;
+let mainUrl = "bedroom";
+// let mainEuler = new THREE.Euler(0, -Math.PI / 2, 0);
+const main = new Room("主卧", mainIndex, mainUrl, mainPosition);
+// 主卧文字精灵
+const textMain = new (0, _spriteCanvasDefault.default)(camera, "主卧", new _three.Vector3(-19, 0, 2));
+scene.add(textMain.mesh);
+textMain.onClick(()=>{
+    console.log("主卧");
+    (0, _gsapDefault.default).to(camera.position, {
+        x: mainPosition.x,
+        y: mainPosition.y,
+        z: mainPosition.z,
+        duration: 1
+    });
+    moveTag("主卧");
+});
+// 创建主卧回走廊文字精灵
+const textMainToCorridor = new (0, _spriteCanvasDefault.default)(camera, "走廊", new _three.Vector3(-23, 0, -2));
+scene.add(textMainToCorridor.mesh);
+textMainToCorridor.onClick(()=>{
+    console.log("走廊");
+    (0, _gsapDefault.default).to(camera.position, {
+        x: hallwayPosition.x,
+        y: hallwayPosition.y,
+        z: hallwayPosition.z,
+        duration: 1
+    });
+    moveTag("走廊");
+});
+let isMouseDown = false;
+// 监听鼠标按下事件
+window.addEventListener("mousedown", ()=>{
+    isMouseDown = true;
+}, false);
+// 监听鼠标抬起事件
+window.addEventListener("mouseup", ()=>{
+    isMouseDown = false;
+}, false);
+// 监听鼠标移动事件
+window.addEventListener("mousemove", (e)=>{
+    if (isMouseDown) {
+        camera.rotation.y += e.movementX / window.innerWidth * Math.PI;
+        camera.rotation.x += e.movementY / window.innerHeight * Math.PI;
+        camera.rotation.order = "YXZ";
+    }
+}, false);
 const renderer = new _three.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-const controls = new (0, _orbitControls.OrbitControls)(camera, renderer.domElement);
-// 开启阻尼 更真实
-controls.enableDamping = true;
-// 坐标轴
-// const axesHelper = new THREE.AxesHelper( 5 );
-// scene.add( axesHelper );
-controls.update();
+container.appendChild(renderer.domElement);
 function animate() {
-    controls.update();
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
 }
@@ -652,6 +796,69 @@ window.addEventListener("resize", ()=>{
     renderer.setPixelRatio = window.devicePixelRatio;
 });
 
-},{"three":"ktPTu","three/examples/jsm/controls/OrbitControls":"7mqRv","dat.gui":"k3xQk","gsap":"fPSuC","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["lGJcq","eaTkp"], "eaTkp", "parcelRequire9b34")
+},{"three":"ktPTu","dat.gui":"k3xQk","gsap":"fPSuC","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./SpriteCanvas":"cvYd3"}],"cvYd3":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _three = require("three");
+class SpriteCanvas {
+    constructor(camera, text = "helloworld", position = new _three.Vector3(0, 0, 0), euler = new _three.Euler(0, 0, 0)){
+        this.fns = [];
+        // 创建canvas对象
+        const canvas = document.createElement("canvas");
+        canvas.width = 1024;
+        canvas.height = 1024;
+        // canvas.style.position = "absolute";
+        // canvas.style.top = "0px";
+        // canvas.style.left = "0px";
+        // canvas.style.zIndex = "1";
+        // canvas.style.transformOrigin = "0 0";
+        // canvas.style.transform = "scale(0.1)";
+        const context = canvas.getContext("2d");
+        this.context = context;
+        context.fillStyle = "rgba(100,100,100,1)";
+        context.fillRect(0, 256, 1024, 512);
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        context.font = "bold 200px Arial";
+        context.fillStyle = "rgba(255,255,255,1)";
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+        let texture = new _three.CanvasTexture(canvas);
+        const material = new _three.SpriteMaterial({
+            map: texture,
+            color: 0xffffff,
+            alphaMap: texture,
+            side: _three.DoubleSide,
+            transparent: true
+        });
+        this.mesh = new _three.Sprite(material);
+        this.mesh.scale.set(0.5, 0.5, 0.5);
+        this.mesh.position.copy(position);
+        // this.mesh.rotation.copy(euler);
+        // console.log(this);
+        // 创建射线
+        this.raycaster = new _three.Raycaster();
+        this.mouse = new _three.Vector2();
+        // 事件的监听
+        window.addEventListener("click", (event)=>{
+            this.mouse.x = event.clientX / window.innerWidth * 2 - 1;
+            this.mouse.y = -(event.clientY / window.innerHeight * 2 - 1);
+            this.raycaster.setFromCamera(this.mouse, camera);
+            event.mesh = this.mesh;
+            event.spriteCanvas = this;
+            // console.log(this.mouse);
+            const intersects = this.raycaster.intersectObject(this.mesh);
+            // console.log(intersects);
+            if (intersects.length > 0) this.fns.forEach((fn)=>{
+                fn(event);
+            });
+        });
+    }
+    onClick(fn) {
+        this.fns.push(fn);
+    }
+}
+exports.default = SpriteCanvas;
+
+},{"three":"ktPTu","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["lGJcq","eaTkp"], "eaTkp", "parcelRequire9b34")
 
 //# sourceMappingURL=index.28f02728.js.map
